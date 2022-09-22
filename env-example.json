@@ -1,0 +1,15 @@
+{
+    "webserver" : {
+        "port" : "80"
+    },
+    "database" : {
+        "user" : "",
+        "password" : "",
+        "db_name" : "",
+        "port" : "",
+        "host" : ""
+    },
+    "auth" : {
+        "jwtKey" : ""
+    }
+}
