@@ -20,4 +20,9 @@ func Register(app *fiber.App) {
 	api.Post("/contact", di.GetUserHandler().CreateContact)
 	api.Put("/contact/:id", di.GetUserHandler().UpdateContact)
 	api.Delete("/contact/:id", di.GetUserHandler().DeleteContact)
+	api.Post("/service", di.GetServiceHandler().Create)
+	api.Put("/service/:id", di.GetServiceHandler().Update)
+	api.Delete("/service/:id", di.GetServiceHandler().Delete)
+	api.Get("/services", di.GetServiceHandler().FindAll)
+	api.Get("service/:id", di.GetServiceHandler().FindOne)
 }

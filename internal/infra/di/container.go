@@ -13,10 +13,28 @@ type DependencyContainer struct {
 	connection            *sqlx.DB
 	userHandler           *handlers.UserHandler
 	authHandler           *handlers.HandlerAuth
+	serviceHandler        *handlers.ServiceHandler
 	login                 auth.Login
 	userActions           actions.UserAction
 	userQueryRepository   entities.UserQueryRepository
 	userCommandRepository entities.UserCommandRepository
+	serviceRepository     entities.ServiceRepository
+}
+
+func (d *DependencyContainer) GetServiceHandler() *handlers.ServiceHandler {
+	if d.serviceHandler == nil {
+		d.serviceHandler = handlers.NewServiceHandler(
+			d.GetServiceRepository(),
+		)
+	}
+	return d.serviceHandler
+}
+
+func (d *DependencyContainer) GetServiceRepository() entities.ServiceRepository {
+	d.serviceRepository = mysql.NewServiceRepository(
+		d.GetDatabaseConnection(),
+	)
+	return d.serviceRepository
 }
 
 func (d *DependencyContainer) GetAuthHandler() *handlers.HandlerAuth {
