@@ -15,12 +15,30 @@ type DependencyContainer struct {
 	authHandler               *handlers.HandlerAuth
 	serviceHandler            *handlers.ServiceHandler
 	productCategoryHandler    *handlers.ProductCategoryHandler
+	productHandler            *handlers.ProductHandler
 	login                     auth.Login
 	userActions               actions.UserAction
 	userQueryRepository       entities.UserQueryRepository
 	userCommandRepository     entities.UserCommandRepository
 	serviceRepository         entities.ServiceRepository
 	productCategoryRepository entities.ProductCategoryRepository
+	productRepository         entities.ProductRepository
+}
+
+func (d *DependencyContainer) GetProductHandler() *handlers.ProductHandler {
+	if d.productHandler == nil {
+		d.productHandler = handlers.NewProductHandler(
+			d.GetProductRepository(),
+		)
+	}
+	return d.productHandler
+}
+
+func (d *DependencyContainer) GetProductRepository() entities.ProductRepository {
+	d.productRepository = mysql.NewProductRepository(
+		d.GetDatabaseConnection(),
+	)
+	return d.productRepository
 }
 
 func (d *DependencyContainer) GetProductCategoryHandler() *handlers.ProductCategoryHandler {
