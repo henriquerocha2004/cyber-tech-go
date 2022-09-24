@@ -10,15 +10,33 @@ import (
 )
 
 type DependencyContainer struct {
-	connection            *sqlx.DB
-	userHandler           *handlers.UserHandler
-	authHandler           *handlers.HandlerAuth
-	serviceHandler        *handlers.ServiceHandler
-	login                 auth.Login
-	userActions           actions.UserAction
-	userQueryRepository   entities.UserQueryRepository
-	userCommandRepository entities.UserCommandRepository
-	serviceRepository     entities.ServiceRepository
+	connection                *sqlx.DB
+	userHandler               *handlers.UserHandler
+	authHandler               *handlers.HandlerAuth
+	serviceHandler            *handlers.ServiceHandler
+	productCategoryHandler    *handlers.ProductCategoryHandler
+	login                     auth.Login
+	userActions               actions.UserAction
+	userQueryRepository       entities.UserQueryRepository
+	userCommandRepository     entities.UserCommandRepository
+	serviceRepository         entities.ServiceRepository
+	productCategoryRepository entities.ProductCategoryRepository
+}
+
+func (d *DependencyContainer) GetProductCategoryHandler() *handlers.ProductCategoryHandler {
+	if d.productCategoryHandler == nil {
+		d.productCategoryHandler = handlers.NewProductCategoryHandler(
+			d.GetProductCategoryRepository(),
+		)
+	}
+	return d.productCategoryHandler
+}
+
+func (d *DependencyContainer) GetProductCategoryRepository() entities.ProductCategoryRepository {
+	d.productCategoryRepository = mysql.NewProductCategoryRepository(
+		d.GetDatabaseConnection(),
+	)
+	return d.productCategoryRepository
 }
 
 func (d *DependencyContainer) GetServiceHandler() *handlers.ServiceHandler {

@@ -119,7 +119,7 @@ func (u *UserAction) ChangePassword(userId int, newPassword string) UserOutput {
 	user, err := u.userQueryRepository.FindById(userId)
 	if err != nil {
 		output.Error = true
-		output.Message = "Error in change password: " + err.Error()
+		output.Message = "Error in change password"
 		return output
 	}
 

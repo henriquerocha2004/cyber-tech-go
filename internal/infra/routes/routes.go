@@ -25,4 +25,9 @@ func Register(app *fiber.App) {
 	api.Delete("/service/:id", di.GetServiceHandler().Delete)
 	api.Get("/services", di.GetServiceHandler().FindAll)
 	api.Get("service/:id", di.GetServiceHandler().FindOne)
+	api.Post("/product-category", di.GetProductCategoryHandler().Create)
+	api.Put("/product-category/:id", di.GetProductCategoryHandler().Update)
+	api.Delete("/product-category/:id", di.GetProductCategoryHandler().Delete)
+	api.Get("/product-categories", di.GetProductCategoryHandler().FindAll)
+	api.Get("/product-category/:id", di.GetProductCategoryHandler().FindOne)
 }

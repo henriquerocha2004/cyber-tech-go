@@ -9,158 +9,149 @@ import (
 	"github.com/henriquerocha2004/cyber-tech-go/internal/entities"
 )
 
-type Output struct {
-	Error   bool   `json:"error"`
-	Message string `json:"message"`
-	Data    any    `json:"data"`
+type ProductCategoryHandler struct {
+	productCategoryRepository entities.ProductCategoryRepository
 }
 
-type ServiceHandler struct {
-	serviceRepository entities.ServiceRepository
-}
-
-func NewServiceHandler(serviceRepo entities.ServiceRepository) *ServiceHandler {
-	return &ServiceHandler{
-		serviceRepository: serviceRepo,
+func NewProductCategoryHandler(prodCatRepo entities.ProductCategoryRepository) *ProductCategoryHandler {
+	return &ProductCategoryHandler{
+		productCategoryRepository: prodCatRepo,
 	}
 }
 
-func (s *ServiceHandler) Create(ctx *fiber.Ctx) error {
+func (p *ProductCategoryHandler) Create(ctx *fiber.Ctx) error {
 	validate := validator.New()
-	var service entities.Service
-	err := ctx.BodyParser(&service)
+	var category entities.ProductCategory
+	err := ctx.BodyParser(&category)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).SendString("failed to parse request")
+	}
+
+	err = validate.Struct(validate)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).SendString("failed to validate request: " + err.Error())
+	}
+
+	err = p.productCategoryRepository.Create(category)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(&Output{
+			Error:   true,
+			Message: "Error in create category: " + err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusAccepted).JSON(&Output{
+		Error:   false,
+		Message: "category created successfully",
+	})
+}
+
+func (p *ProductCategoryHandler) Update(ctx *fiber.Ctx) error {
+	validate := validator.New()
+	var category entities.ProductCategory
+	id := ctx.Params("id")
+	if id == "" {
+		log.Println("invalid id provided")
+		return ctx.Status(fiber.StatusBadRequest).SendString("invalid id provided")
+	}
+
+	err := ctx.BodyParser(&category)
 	if err != nil {
 		log.Println(err)
 		return ctx.Status(fiber.StatusBadRequest).SendString("error in parse request")
 	}
 
-	err = validate.Struct(service)
+	err = validate.Struct(category)
 	if err != nil {
 		log.Println(err)
 		return ctx.Status(fiber.StatusBadRequest).SendString("error in validate request")
 	}
 
-	err = s.serviceRepository.Create(service)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(&Output{
-			Error:   true,
-			Message: "Error in create service: " + err.Error(),
-		})
-	}
-
-	return ctx.Status(fiber.StatusAccepted).JSON(&Output{
-		Error:   false,
-		Message: "service created successfully",
-	})
-}
-
-func (s *ServiceHandler) Update(ctx *fiber.Ctx) error {
-	validate := validator.New()
-	var service entities.Service
-	id := ctx.Params("id")
-
-	if id == "" {
-		log.Println("invalid id provided")
-		return ctx.Status(fiber.StatusBadRequest).SendString("invalid id provided")
-	}
-
-	err := ctx.BodyParser(&service)
-	if err != nil {
-		log.Println(err)
-		return ctx.Status(fiber.StatusBadRequest).SendString("error in parse request")
-	}
-
-	err = validate.Struct(service)
-	if err != nil {
-		log.Println(err)
-		return ctx.Status(fiber.StatusBadRequest).SendString("error in validate request")
-	}
-
-	service.Id, err = strconv.Atoi(id)
+	category.Id, err = strconv.Atoi(id)
 	if err != nil {
 		log.Println("failed to convert string in int")
 		return ctx.Status(fiber.StatusBadRequest).SendString("error in parse request")
 	}
 
-	err = s.serviceRepository.Update(service)
+	err = p.productCategoryRepository.Update(category)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(&Output{
 			Error:   true,
-			Message: "Error in update service: " + err.Error(),
+			Message: "Error in update category: " + err.Error(),
 		})
 	}
 
 	return ctx.Status(fiber.StatusAccepted).JSON(&Output{
 		Error:   false,
-		Message: "service updated successfully",
+		Message: "category updated successfully",
 	})
 }
 
-func (s *ServiceHandler) Delete(ctx *fiber.Ctx) error {
+func (p *ProductCategoryHandler) Delete(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
 		log.Println("invalid id provided")
 		return ctx.Status(fiber.StatusBadRequest).SendString("invalid id provided")
 	}
 
-	serviceId, err := strconv.Atoi(id)
+	categoryId, err := strconv.Atoi(id)
 	if err != nil {
 		log.Println("failed to convert string in int")
 		return ctx.Status(fiber.StatusBadRequest).SendString("error in parse request")
 	}
 
-	err = s.serviceRepository.Delete(serviceId)
+	err = p.productCategoryRepository.Delete(categoryId)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(&Output{
 			Error:   true,
-			Message: "Error in delete service: " + err.Error(),
+			Message: "Error in delete category: " + err.Error(),
 		})
 	}
 
 	return ctx.Status(fiber.StatusAccepted).JSON(&Output{
 		Error:   false,
-		Message: "service deleted successfully",
+		Message: "category deleted successfully",
 	})
 }
 
-func (s *ServiceHandler) FindAll(ctx *fiber.Ctx) error {
-	services, err := s.serviceRepository.FindAll()
+func (p *ProductCategoryHandler) FindOne(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	if id == "" {
+		log.Println("invalid id provided")
+		return ctx.Status(fiber.StatusBadRequest).SendString("invalid id provided")
+	}
+
+	categoryId, err := strconv.Atoi(id)
+	if err != nil {
+		log.Println("failed to convert string in int")
+		return ctx.Status(fiber.StatusBadRequest).SendString("error in parse request")
+	}
+
+	category, err := p.productCategoryRepository.FindOne(categoryId)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(&Output{
 			Error:   true,
-			Message: "Error search services: " + err.Error(),
+			Message: "Error search category: " + err.Error(),
 		})
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(&Output{
 		Error: false,
-		Data:  services,
+		Data:  category,
 	})
 }
 
-func (s *ServiceHandler) FindOne(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
-	if id == "" {
-		log.Println("invalid id provided")
-		return ctx.Status(fiber.StatusBadRequest).SendString("invalid id provided")
-	}
-
-	serviceId, err := strconv.Atoi(id)
-	if err != nil {
-		log.Println("failed to convert string in int")
-		return ctx.Status(fiber.StatusBadRequest).SendString("error in parse request")
-	}
-
-	service, err := s.serviceRepository.FindOne(serviceId)
+func (p *ProductCategoryHandler) FindAll(ctx *fiber.Ctx) error {
+	categories, err := p.productCategoryRepository.FindAll()
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(&Output{
 			Error:   true,
-			Message: "Error search service: " + err.Error(),
+			Message: "Error search categories: " + err.Error(),
 		})
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(&Output{
 		Error: false,
-		Data:  service,
+		Data:  categories,
 	})
 }
