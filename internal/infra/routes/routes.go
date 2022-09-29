@@ -35,4 +35,11 @@ func Register(app *fiber.App) {
 	api.Delete("/product/:id", di.GetProductHandler().Delete)
 	api.Get("/products", di.GetProductHandler().FindAll)
 	api.Get("/product/:id", di.GetProductHandler().FindOne)
+	api.Post("/supplier", di.GetServiceHandler().Create)
+	api.Put("/supplier/:id", di.GetSupplierHandler().Update)
+	api.Delete("/supplier/:id", di.GetSupplierHandler().Delete)
+	api.Get("/suppliers", di.GetSupplierHandler().FindAll)
+	api.Get("/supplier/:id", di.GetSupplierHandler().FindOne)
+	api.Post("/stock", di.GetStockHandler().Add)
+	api.Get("/stock/movements/:productId", di.GetStockHandler().FindStock)
 }

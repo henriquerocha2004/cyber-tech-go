@@ -16,13 +16,57 @@ type DependencyContainer struct {
 	serviceHandler            *handlers.ServiceHandler
 	productCategoryHandler    *handlers.ProductCategoryHandler
 	productHandler            *handlers.ProductHandler
+	supplierHandler           *handlers.SupplierHandler
+	stockHandler              *handlers.StockHandler
 	login                     auth.Login
 	userActions               actions.UserAction
+	stockActions              actions.StockActions
 	userQueryRepository       entities.UserQueryRepository
 	userCommandRepository     entities.UserCommandRepository
 	serviceRepository         entities.ServiceRepository
 	productCategoryRepository entities.ProductCategoryRepository
 	productRepository         entities.ProductRepository
+	supplierRepository        entities.SupplierRepository
+	stockRepository           entities.StockRepository
+}
+
+func (d *DependencyContainer) GetStockHandler() *handlers.StockHandler {
+	if d.stockHandler == nil {
+		d.stockHandler = handlers.NewStockHandler(
+			d.GetStockActions(),
+		)
+	}
+	return d.stockHandler
+}
+
+func (d *DependencyContainer) GetStockActions() actions.StockActions {
+	d.stockActions = *actions.NewStockActions(
+		d.GetStockRepository(),
+	)
+	return d.stockActions
+}
+
+func (d *DependencyContainer) GetStockRepository() entities.StockRepository {
+	d.stockRepository = mysql.NewStockRepository(
+		d.GetDatabaseConnection(),
+	)
+	return d.stockRepository
+}
+
+func (d *DependencyContainer) GetSupplierHandler() *handlers.SupplierHandler {
+	if d.supplierHandler == nil {
+		d.supplierHandler = handlers.NewSupplierHandler(
+			d.GetSupplierRepository(),
+		)
+	}
+	return d.supplierHandler
+}
+
+func (d *DependencyContainer) GetSupplierRepository() entities.SupplierRepository {
+	d.supplierRepository = mysql.NewSupplierRepository(
+		d.GetDatabaseConnection(),
+	)
+	return d.supplierRepository
 }
 
 func (d *DependencyContainer) GetProductHandler() *handlers.ProductHandler {
