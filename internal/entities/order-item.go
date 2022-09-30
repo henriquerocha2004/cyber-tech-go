@@ -14,6 +14,7 @@ type OrderItem struct {
 	Type      string  `json:"type"`
 	Quantity  int     `json:"quantity"`
 	Value     float64 `json:"value"`
+	Product   Product `json:"product"`
 }
 
 func (o *OrderItem) SetTypeItem(itemType string) error {

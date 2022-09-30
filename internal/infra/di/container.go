@@ -18,6 +18,7 @@ type DependencyContainer struct {
 	productHandler            *handlers.ProductHandler
 	supplierHandler           *handlers.SupplierHandler
 	stockHandler              *handlers.StockHandler
+	orderStatusHandler        *handlers.OrderServiceStatusHandler
 	login                     auth.Login
 	userActions               actions.UserAction
 	stockActions              actions.StockActions
@@ -28,6 +29,23 @@ type DependencyContainer struct {
 	productRepository         entities.ProductRepository
 	supplierRepository        entities.SupplierRepository
 	stockRepository           entities.StockRepository
+	orderStatusRepository     entities.OrderServiceStatusRepository
+}
+
+func (d *DependencyContainer) GetOrderStatusHandler() *handlers.OrderServiceStatusHandler {
+	if d.orderStatusHandler == nil {
+		d.orderStatusHandler = handlers.NewOrderServiceStatusHandler(
+			d.GetOrderStatusRepository(),
+		)
+	}
+	return d.orderStatusHandler
+}
+
+func (d *DependencyContainer) GetOrderStatusRepository() entities.OrderServiceStatusRepository {
+	d.orderStatusRepository = mysql.NewOrderServiceStatusRepository(
+		d.GetDatabaseConnection(),
+	)
+	return d.orderStatusRepository
 }
 
 func (d *DependencyContainer) GetStockHandler() *handlers.StockHandler {

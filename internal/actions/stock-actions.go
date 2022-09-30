@@ -2,6 +2,7 @@ package actions
 
 import (
 	"log"
+	"time"
 
 	"github.com/henriquerocha2004/cyber-tech-go/internal/entities"
 )
@@ -13,7 +14,7 @@ type StockActions struct {
 type StockInput struct {
 	TypeMovement string `json:"type_movement" validate:"required"`
 	Quantity     int    `json:"quantity" validate:"required"`
-	Invoice      int    `json:"invoice,omitempty"`
+	Invoice      string `json:"invoice,omitempty"`
 	Date         string `json:"date"`
 	SupplierId   int    `json:"supplier_id" validate:"required"`
 	ProductId    int    `json:"product_id" validate:"required"`
@@ -38,7 +39,7 @@ func (s *StockActions) Add(stockInput StockInput) StockOutput {
 		TypeMovement: stockInput.TypeMovement,
 		Quantity:     stockInput.Quantity,
 		Invoice:      stockInput.Invoice,
-		Date:         stockInput.Date,
+		Date:         time.Now().Format("2006-01-02 15:04"),
 		SupplierId:   stockInput.SupplierId,
 		ProductId:    stockInput.ProductId,
 		UserId:       stockInput.UserId,

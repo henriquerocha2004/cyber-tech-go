@@ -8,7 +8,7 @@ const (
 type Stock struct {
 	TypeMovement string `json:"type_movement" db:"type_movement"`
 	Quantity     int    `json:"quantity" db:"quantity"`
-	Invoice      int    `json:"invoice,omitempty" db:"invoice"`
+	Invoice      string `json:"invoice,omitempty" db:"invoice"`
 	Date         string `json:"date" db:"date"`
 	SupplierId   int    `json:"supplier_id" db:"supplier_id"`
 	ProductId    int    `json:"product_id" db:"product_id"`
