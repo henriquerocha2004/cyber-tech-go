@@ -47,4 +47,8 @@ func Register(app *fiber.App) {
 	api.Delete("/order-service-status/:id", di.GetOrderStatusHandler().Delete)
 	api.Get("/order-service-status", di.GetOrderStatusHandler().FindAll)
 	api.Get("/order-service-status/:id", di.GetOrderStatusHandler().FindOne)
+	api.Post("/order-service", di.GetOrderServiceHandler().Create)
+	api.Put("/order-service/:id", di.GetOrderServiceHandler().Update)
+	api.Get("/order-service/:id", di.GetOrderServiceHandler().FindOne)
+	api.Get("/orders-service", di.GetOrderServiceHandler().FindAll)
 }

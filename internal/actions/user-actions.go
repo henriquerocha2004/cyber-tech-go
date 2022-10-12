@@ -304,7 +304,6 @@ func (u *UserAction) DeleteContact(contactId int) UserOutput {
 	output.Error = false
 	output.Message = "contact deleted successfully"
 	return output
-
 }
 
 func (u *UserAction) FindUsers(typeUser string) UserOutput {

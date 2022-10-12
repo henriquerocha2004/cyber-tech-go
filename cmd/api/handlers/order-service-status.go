@@ -51,7 +51,6 @@ func (o *OrderServiceStatusHandler) Update(ctx *fiber.Ctx) error {
 	validate := validator.New()
 	var status entities.OrderServiceStatus
 	id := ctx.Params("id")
-
 	if id == "" {
 		log.Println("invalid id provided")
 		return ctx.Status(fiber.StatusBadRequest).SendString("invalid id provided")

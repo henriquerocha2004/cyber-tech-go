@@ -10,26 +10,66 @@ import (
 )
 
 type DependencyContainer struct {
-	connection                *sqlx.DB
-	userHandler               *handlers.UserHandler
-	authHandler               *handlers.HandlerAuth
-	serviceHandler            *handlers.ServiceHandler
-	productCategoryHandler    *handlers.ProductCategoryHandler
-	productHandler            *handlers.ProductHandler
-	supplierHandler           *handlers.SupplierHandler
-	stockHandler              *handlers.StockHandler
-	orderStatusHandler        *handlers.OrderServiceStatusHandler
-	login                     auth.Login
-	userActions               actions.UserAction
-	stockActions              actions.StockActions
-	userQueryRepository       entities.UserQueryRepository
-	userCommandRepository     entities.UserCommandRepository
-	serviceRepository         entities.ServiceRepository
-	productCategoryRepository entities.ProductCategoryRepository
-	productRepository         entities.ProductRepository
-	supplierRepository        entities.SupplierRepository
-	stockRepository           entities.StockRepository
-	orderStatusRepository     entities.OrderServiceStatusRepository
+	connection             *sqlx.DB
+	
+	userHandler            *handlers.UserHandler
+	authHandler            *handlers.HandlerAuth
+	serviceHandler         *handlers.ServiceHandler
+	productCategoryHandler *handlers.ProductCategoryHandler
+	productHandler         *handlers.ProductHandler
+	supplierHandler        *handlers.SupplierHandler
+	stockHandler           *handlers.StockHandler
+	orderStatusHandler     *handlers.OrderServiceStatusHandler
+	serviceOrderHandler    *handlers.OrderServiceHandler
+
+	login               auth.Login
+	userActions         actions.UserAction
+	stockActions        actions.StockActions
+	orderServiceActions actions.ServiceOrderActions
+
+	userQueryRepository           entities.UserQueryRepository
+	userCommandRepository         entities.UserCommandRepository
+	serviceRepository             entities.ServiceRepository
+	productCategoryRepository     entities.ProductCategoryRepository
+	productRepository             entities.ProductRepository
+	supplierRepository            entities.SupplierRepository
+	stockRepository               entities.StockRepository
+	orderStatusRepository         entities.OrderServiceStatusRepository
+	orderServiceCommandRepository entities.OrderServiceCommandRepository
+	orderServiceQueryRepository   entities.OrderServiceQueryRepository
+}
+
+func (d *DependencyContainer) GetOrderServiceHandler() *handlers.OrderServiceHandler {
+	if d.serviceOrderHandler == nil {
+		d.serviceOrderHandler = handlers.NewOrderServiceHandler(
+			d.GetOrderServiceActions(),
+		)
+	}
+	return d.serviceOrderHandler
+}
+
+func (d *DependencyContainer) GetOrderServiceActions() actions.ServiceOrderActions {
+	d.orderServiceActions = *actions.NewServiceOrderActions(
+		d.GetOrderServiceCommandRepository(),
+		d.GetOrderServiceQueryRepository(),
+		d.GetOrderStatusRepository(),
+		d.GetProductRepository(),
+	)
+	return d.orderServiceActions
+}
+
+func (d *DependencyContainer) GetOrderServiceQueryRepository() entities.OrderServiceQueryRepository {
+	d.orderServiceQueryRepository = mysql.NewOrderServiceQueryRepository(
+		d.GetDatabaseConnection(),
+	)
+	return d.orderServiceQueryRepository
+}
+
+func (d *DependencyContainer) GetOrderServiceCommandRepository() entities.OrderServiceCommandRepository {
+	d.orderServiceCommandRepository = mysql.NewOrderServiceCommandRepository(
+		d.GetDatabaseConnection(),
+	)
+	return d.orderServiceCommandRepository
 }
 
 func (d *DependencyContainer) GetOrderStatusHandler() *handlers.OrderServiceStatusHandler {

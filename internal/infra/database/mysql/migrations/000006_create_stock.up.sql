@@ -4,12 +4,12 @@ CREATE TABLE stock (
     quantity INTEGER NOT NULL,
     invoice VARCHAR(255),
     date DATETIME NOT NULL,
-    supplier_id BIGINT UNSIGNED NOT NULL,
+    supplier_id BIGINT UNSIGNED,
     product_id BIGINT UNSIGNED NOT NULL,
     user_id BIGINT UNSIGNED NOT NULL,
     PRIMARY KEY (id)
 )
-ENGINE = innodb
+CHARACTER SET utf8mb4
 COLLATE utf8mb4_general_ci
 ENGINE = innodb;
 

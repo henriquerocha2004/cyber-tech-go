@@ -29,3 +29,11 @@ func main() {
 		panic(err)
 	}
 }
+
+func launchListeners() {
+
+	for {
+		fmt.Println("test")
+	}
+
+}

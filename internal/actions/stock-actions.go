@@ -88,6 +88,49 @@ func (s *StockActions) FindStock(productId int) StockOutput {
 	return output
 }
 
+func (s *StockActions) CreateStockByOrderProcess(orderInput ServiceOrderInput) StockOutput {
+	if !s.validateOrder(&orderInput) {
+		return StockOutput{
+			Error:   false,
+			Message: "Order Service is not able to movement stock yet",
+		}
+	}
+
+	for _, item := range orderInput.Items {
+		var stockInput StockInput
+		stockInput.TypeMovement = entities.OUT
+		stockInput.Quantity = item.Quantity
+		stockInput.ProductId = item.ProductId
+		stockInput.SupplierId = 
+	}
+
+
+
+	
+
+
+}
+
+func (s *StockActions) validateOrder(orderInput *ServiceOrderInput) bool {
+	if !orderInput.Paid {
+		return false
+	}
+
+	if len(orderInput.Items) < 1 {
+		return false
+	}
+
+	var productsId []int
+
+	for _, item := range orderInput.Items {
+		if item.Type == entities.TypeProduct {
+			productsId = append(productsId, item.ProductId)
+		}
+	}
+
+	return len(productsId) >= 1
+}
+
 func (s *StockActions) calcQuantityProductInStock(stockMovements []entities.Stock) entities.StockResult {
 	var result entities.StockResult
 

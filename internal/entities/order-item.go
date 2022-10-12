@@ -8,13 +8,13 @@ const (
 )
 
 type OrderItem struct {
-	Id        int     `json:"id,omitempty"`
-	ProductId int     `json:"product_id"`
-	OrderId   int     `json:"order_id"`
-	Type      string  `json:"type"`
-	Quantity  int     `json:"quantity"`
-	Value     float64 `json:"value"`
-	Product   Product `json:"product"`
+	Id        int      `json:"id,omitempty" db:"id,omitempty"`
+	ProductId int      `json:"product_id" db:"product_id"`
+	OrderId   int      `json:"order_id" db:"order_id"`
+	Type      string   `json:"type" db:"type"`
+	Quantity  int      `json:"quantity" db:"quantity"`
+	Value     float64  `json:"value" db:"value"`
+	Product   *Product `json:"product,omitempty"`
 }
 
 func (o *OrderItem) SetTypeItem(itemType string) error {

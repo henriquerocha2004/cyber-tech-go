@@ -5,6 +5,6 @@ CREATE TABLE order_service_status (
     color VARCHAR(255),
     PRIMARY KEY (id)
 )
-ENGINE = innodb
+CHARACTER SET utf8mb4
 COLLATE utf8mb4_general_ci
 ENGINE = innodb;
