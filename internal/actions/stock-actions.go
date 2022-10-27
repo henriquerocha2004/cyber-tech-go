@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"errors"
 	"log"
 	"time"
 
@@ -16,7 +17,7 @@ type StockInput struct {
 	Quantity     int    `json:"quantity" validate:"required"`
 	Invoice      string `json:"invoice,omitempty"`
 	Date         string `json:"date"`
-	SupplierId   int    `json:"supplier_id" validate:"required"`
+	SupplierId   int    `json:"supplier_id"`
 	ProductId    int    `json:"product_id" validate:"required"`
 	UserId       int    `json:"user_id" validate:"required"`
 }
@@ -44,7 +45,7 @@ func (s *StockActions) Add(stockInput StockInput) StockOutput {
 		ProductId:    stockInput.ProductId,
 		UserId:       stockInput.UserId,
 	}
-
+	log.Println(s.stockRepository)
 	err := s.stockRepository.Add(stock)
 	if err != nil {
 		log.Println(err)
@@ -88,27 +89,31 @@ func (s *StockActions) FindStock(productId int) StockOutput {
 	return output
 }
 
-func (s *StockActions) CreateStockByOrderProcess(orderInput ServiceOrderInput) StockOutput {
+func (s *StockActions) CreateStockByOrderProcess(orderInput ServiceOrderInput) error {
 	if !s.validateOrder(&orderInput) {
-		return StockOutput{
-			Error:   false,
-			Message: "Order Service is not able to movement stock yet",
-		}
+		return nil
 	}
 
 	for _, item := range orderInput.Items {
+
+		if item.Type == entities.TypeService {
+			continue
+		}
+
 		var stockInput StockInput
 		stockInput.TypeMovement = entities.OUT
 		stockInput.Quantity = item.Quantity
 		stockInput.ProductId = item.ProductId
-		stockInput.SupplierId = 
+		stockInput.UserId = 1
+
+		output := s.Add(stockInput)
+
+		if output.Error {
+			return errors.New(output.Message)
+		}
 	}
 
-
-
-	
-
-
+	return nil
 }
 
 func (s *StockActions) validateOrder(orderInput *ServiceOrderInput) bool {

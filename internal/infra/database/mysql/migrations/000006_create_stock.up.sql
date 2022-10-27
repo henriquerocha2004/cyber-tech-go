@@ -13,5 +13,4 @@ CHARACTER SET utf8mb4
 COLLATE utf8mb4_general_ci
 ENGINE = innodb;
 
-ALTER TABLE stock ADD CONSTRAINT fk_stock_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers (id);
 ALTER TABLE stock ADD CONSTRAINT fk_stock_product FOREIGN KEY (product_id) REFERENCES products (id);

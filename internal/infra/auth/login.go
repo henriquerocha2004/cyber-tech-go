@@ -11,7 +11,8 @@ type Login struct {
 }
 
 type TokenResponse struct {
-	Token string `json:"token"`
+	Token string        `json:"token"`
+	User  entities.User `json:"user"`
 }
 
 type UserCredentials struct {
@@ -38,5 +39,8 @@ func (l *Login) Authenticate(userCredentials UserCredentials) (*TokenResponse, e
 	token, err := GenerateToken(user.Email, user.FirstName, user.LastName, user.Id)
 	var tokenResponse TokenResponse
 	tokenResponse.Token = token
+	tokenResponse.User.Email = user.Email
+	tokenResponse.User.FirstName = user.FirstName
+	tokenResponse.User.LastName = user.LastName
 	return &tokenResponse, err
 }

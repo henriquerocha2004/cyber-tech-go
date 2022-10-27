@@ -1,4 +1,5 @@
 .history
 .vscode
+.idea
 env.json
 env_test.json

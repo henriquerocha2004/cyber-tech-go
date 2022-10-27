@@ -276,7 +276,7 @@ func (o *OrderServiceQueryRepository) GetEquipments(orderId int) ([]entities.Equ
 
 func (o *OrderServiceQueryRepository) GetPayments(orderId int) ([]entities.OrderPayment, error) {
 	var payments []entities.OrderPayment
-	query := `SELECT id, order_id, description, total_value,installments,installment_value FROM order_payment WHERE order_id = ?`
+	query := `SELECT id, order_id, description, total_value,installments,installment_value FROM order_payments WHERE order_id = ?`
 	err := o.connection.Select(&payments, query, orderId)
 	return payments, err
 }

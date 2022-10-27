@@ -13,6 +13,7 @@ type ServiceOrderActions struct {
 	orderServiceCommandRepository entities.OrderServiceCommandRepository
 	orderServiceQueryRepository   entities.OrderServiceQueryRepository
 	orderServiceStatusRepository  entities.OrderServiceStatusRepository
+	eventOrderService             entities.SendOrderServiceEvent
 	productRepository             entities.ProductRepository
 }
 
@@ -66,11 +67,13 @@ func NewServiceOrderActions(
 	orderServiceComRepo entities.OrderServiceCommandRepository,
 	orderServiceQueryRepo entities.OrderServiceQueryRepository,
 	orderServiceStatusRepo entities.OrderServiceStatusRepository,
-	productRepository entities.ProductRepository) *ServiceOrderActions {
+	productRepository entities.ProductRepository,
+	eventOrderService entities.SendOrderServiceEvent) *ServiceOrderActions {
 	return &ServiceOrderActions{
 		orderServiceCommandRepository: orderServiceComRepo,
 		orderServiceQueryRepository:   orderServiceQueryRepo,
 		orderServiceStatusRepository:  orderServiceStatusRepo,
+		eventOrderService:             eventOrderService,
 		productRepository:             productRepository,
 	}
 }
@@ -120,6 +123,12 @@ func (s *ServiceOrderActions) Create(input ServiceOrderInput) OrderOutput {
 			Message: "Failed to create order!",
 		}
 	}
+
+	err = s.eventOrderService.Send(*order)
+	if err != nil {
+		log.Println("Error in send message: ", err)
+	}
+
 	return OrderOutput{
 		Error:   false,
 		Message: "Order created successfully",

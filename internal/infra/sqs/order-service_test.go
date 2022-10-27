@@ -1,8 +1,6 @@
 package sqs_test
 
 import (
-	"encoding/json"
-	"log"
 	"testing"
 
 	"github.com/henriquerocha2004/cyber-tech-go/internal/entities"
@@ -14,25 +12,42 @@ func TestConnectionAws(t *testing.T) {
 	sqsTest := sqs.NewSendOrderServiceEventSqs()
 	order := entities.OrderService{
 		Id:          1,
-		Number:      "2020202125455555",
-		Description: "Alguma descricao",
+		Number:      "20221013171981",
+		Description: "referente a manutenção de smartphone",
 		StatusId:    1,
-		Paid:        false,
+		Paid:        true,
+		Items: []entities.OrderItem{
+			{
+				Id:        1,
+				ProductId: 1,
+				OrderId:   1,
+				Type:      "service",
+				Quantity:  1,
+				Value:     130.00,
+			},
+			{
+				Id:        2,
+				ProductId: 1,
+				OrderId:   1,
+				Type:      "product",
+				Quantity:  1,
+				Value:     200.00,
+			},
+		},
+		Equipments: []entities.Equipment{
+			{
+				Id:          1,
+				Description: "Iphone X",
+				Defect:      "Não Liga",
+				OrderId:     1,
+			},
+		},
 	}
-
 	err := sqsTest.Send(order)
 	assert.NoError(t, err)
 }
 
 func TestReceiveMessage(t *testing.T) {
 	sqsReceive := sqs.NewListenOrderServiceEventSqs()
-	messages, err := sqsReceive.GetEvent()
-	assert.NoError(t, err)
-	m := messages[0].Body
-	log.Println(*m)
-	var order entities.OrderService
-	_ = json.Unmarshal([]byte(*m), &order)
-	log.Println(order)
-	log.Println(messages[0].ReceiptHandle)
-	assert.NotEmpty(t, messages)
+	sqsReceive.GetEvents()
 }

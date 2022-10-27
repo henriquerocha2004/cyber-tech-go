@@ -121,4 +121,10 @@ func (o *OrderServiceQueueHandler) Distribute(message string) error {
 		return err
 	}
 
+	err = o.stockAction.CreateStockByOrderProcess(orderInput)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
 }

@@ -57,3 +57,7 @@ type OrderServiceQueryRepository interface {
 type SendOrderServiceEvent interface {
 	Send(order OrderService) error
 }
+
+type ListenOrderServiceEvent interface {
+	GetEvents()
+}

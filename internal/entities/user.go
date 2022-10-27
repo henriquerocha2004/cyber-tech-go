@@ -38,17 +38,17 @@ type User struct {
 	Id         int       `json:"id,omitempty" db:"id,omitempty"`
 	FirstName  string    `json:"first_name" db:"first_name"`
 	LastName   string    `json:"last_name" db:"last_name"`
-	Type       string    `json:"type" db:"type"`
-	Email      string    `json:"email" db:"email"`
-	Document   string    `json:"document" db:"document"`
+	Type       string    `json:"type,omitempty" db:"type"`
+	Email      string    `json:"email,omitempty" db:"email"`
+	Document   string    `json:"document,omitempty" db:"document"`
 	Password   string    `json:"password,omitempty" db:"password"`
-	TypePerson string    `json:"type_person" db:"type_person"`
+	TypePerson string    `json:"type_person,omitempty" db:"type_person"`
 	LastLogin  string    `json:"last_login,omitempty" db:"last_login,omitempty"`
-	CreatedAt  string    `json:"created_at" db:"created_at"`
-	UpdatedAt  string    `json:"updated_at" db:"updated_at"`
+	CreatedAt  string    `json:"created_at,omitempty" db:"created_at"`
+	UpdatedAt  string    `json:"updated_at,omitempty" db:"updated_at"`
 	Address    []Address `json:"address,omitempty"`
 	Contacts   []Contact `json:"contacts,omitempty"`
-	CreatedBy  int       `json:"created_by" db:"created_by"`
+	CreatedBy  int       `json:"created_by,omitempty" db:"created_by"`
 }
 
 func (u *User) SetPassword(password string) error {

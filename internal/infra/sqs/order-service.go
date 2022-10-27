@@ -2,12 +2,14 @@ package sqs
 
 import (
 	"encoding/json"
+	"github.com/spf13/viper"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/henriquerocha2004/cyber-tech-go/cmd/api/handlers"
 	"github.com/henriquerocha2004/cyber-tech-go/internal/entities"
 )
 
@@ -16,16 +18,11 @@ type SendOrderServiceEventSqs struct {
 }
 
 func NewSendOrderServiceEventSqs() *SendOrderServiceEventSqs {
-	session, err := session.NewSession(
-		&aws.Config{
-			Region:      aws.String("us-east-1"),
-			Credentials: credentials.NewSharedCredentials("", "cybertech"),
+	session := session.Must(session.NewSessionWithOptions(
+		session.Options{
+			SharedConfigState: session.SharedConfigEnable,
 		},
-	)
-
-	if err != nil {
-		panic(err)
-	}
+	))
 
 	sqs := sqs.New(session)
 	return &SendOrderServiceEventSqs{
@@ -34,13 +31,13 @@ func NewSendOrderServiceEventSqs() *SendOrderServiceEventSqs {
 }
 
 func (s *SendOrderServiceEventSqs) Send(order entities.OrderService) error {
-	qURl := `https://sqs.us-east-1.amazonaws.com/608105930645/order_processed`
+	qURl := viper.Get("queue.url_order_service_queue").(string)
 	o, _ := json.Marshal(order)
 	result, err := s.sqs.SendMessage(
 		&sqs.SendMessageInput{
 			DelaySeconds: aws.Int64(10),
 			MessageAttributes: map[string]*sqs.MessageAttributeValue{
-				"Title": &sqs.MessageAttributeValue{
+				"Title": {
 					DataType:    aws.String("String"),
 					StringValue: aws.String("order created"),
 				},
@@ -59,22 +56,28 @@ func (s *SendOrderServiceEventSqs) Send(order entities.OrderService) error {
 }
 
 type ListenOrderServiceEventSqs struct {
-	sqs *sqs.SQS
+	sqs               *sqs.SQS
+	queueUrl          string
+	orderServiceQueue *handlers.OrderServiceQueueHandler
 }
 
-func NewListenOrderServiceEventSqs() *ListenOrderServiceEventSqs {
+func NewListenOrderServiceEventSqs(orderServiceQueueHandler *handlers.OrderServiceQueueHandler) *ListenOrderServiceEventSqs {
 	session := session.Must(session.NewSessionWithOptions(
 		session.Options{
 			SharedConfigState: session.SharedConfigEnable,
 		},
 	))
 	sqs := sqs.New(session)
+	url := viper.Get("queue.url_order_service_queue").(string)
 	return &ListenOrderServiceEventSqs{
-		sqs: sqs,
+		sqs:               sqs,
+		queueUrl:          url,
+		orderServiceQueue: orderServiceQueueHandler,
 	}
 }
 
 func (l *ListenOrderServiceEventSqs) GetEvents() {
+	log.Println("listen events...")
 	messages := make(chan *sqs.Message, 2)
 	go l.pollingMessages(messages)
 	for message := range messages {
@@ -88,7 +91,6 @@ func (l *ListenOrderServiceEventSqs) GetEvents() {
 
 func (l *ListenOrderServiceEventSqs) pollingMessages(ch chan<- *sqs.Message) {
 	for {
-		qURl := `https://sqs.us-east-1.amazonaws.com/608105930645/order_processed`
 		result, err := l.sqs.ReceiveMessage(
 			&sqs.ReceiveMessageInput{
 				AttributeNames: []*string{
@@ -97,27 +99,33 @@ func (l *ListenOrderServiceEventSqs) pollingMessages(ch chan<- *sqs.Message) {
 				MessageAttributeNames: []*string{
 					aws.String(sqs.QueueAttributeNameAll),
 				},
-				QueueUrl:            &qURl,
+				QueueUrl:            &l.queueUrl,
 				MaxNumberOfMessages: aws.Int64(10),
 				VisibilityTimeout:   aws.Int64(60),
 				WaitTimeSeconds:     aws.Int64(0),
 			},
 		)
-
 		if err != nil {
-			log.Println("failed to fetch messages: %v", err)
+			log.Println(err)
 		}
 
 		for _, message := range result.Messages {
 			ch <- message
 		}
+
+		time.Sleep(time.Second * 15)
 	}
 }
 
 func (l *ListenOrderServiceEventSqs) processMessage(msg *sqs.Message) error {
-
+	return l.orderServiceQueue.Distribute(*msg.Body)
 }
 
-func (l *ListenOrderServiceEventSqs) deleteMessage(msg *sqs.Message) error {
+func (l *ListenOrderServiceEventSqs) deleteMessage(msg *sqs.Message) {
+	_, err := l.sqs.DeleteMessage(&sqs.DeleteMessageInput{
+		QueueUrl:      aws.String(l.queueUrl),
+		ReceiptHandle: msg.ReceiptHandle,
+	})
 
+	log.Println("Error in delete message: " + err.Error())
 }

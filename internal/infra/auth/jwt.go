@@ -3,6 +3,8 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -18,7 +20,7 @@ type JwtClaim struct {
 }
 
 func GenerateToken(email, firstName, lastName string, userId int) (string, error) {
-	expirationTime := jwt.NewNumericDate(time.Now().Add(1 * time.Hour))
+	expirationTime := jwt.NewNumericDate(time.Now().Add(10 * time.Hour))
 	claims := &JwtClaim{
 		Email:     email,
 		FirstName: firstName,
@@ -34,7 +36,25 @@ func GenerateToken(email, firstName, lastName string, userId int) (string, error
 	return tokenString, err
 }
 
-func validateToken(signedToken string) (*JwtClaim, error) {
+func CheckAuth(ctx *fiber.Ctx) error {
+	token := ctx.Cookies("token")
+	if token == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized",
+		})
+	}
+	err := validateToken(token)
+	if err != nil {
+		ctx.ClearCookie("token")
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.Next()
+}
+
+func validateToken(signedToken string) error {
 	token, err := jwt.Parse(signedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -42,17 +62,17 @@ func validateToken(signedToken string) (*JwtClaim, error) {
 		return []byte(viper.GetString("auth.jwtKey")), nil
 	})
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return err
 	}
 
-	if claim, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		var jwtUser JwtClaim
-		jwtUser.Email = claim["email"].(string)
-		jwtUser.UserId = claim["user_id"].(int)
-		jwtUser.FirstName = claim["first_name"].(string)
-		jwtUser.LastName = claim["last_name"].(string)
-		return &jwtUser, nil
+	if !token.Valid {
+		return errors.New("token invalid")
 	}
 
-	return nil, errors.New("invalid token or expired")
+	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return nil
+	}
+
+	return errors.New("invalid token or expired")
 }

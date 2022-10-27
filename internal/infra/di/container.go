@@ -6,26 +6,30 @@ import (
 	"github.com/henriquerocha2004/cyber-tech-go/internal/entities"
 	"github.com/henriquerocha2004/cyber-tech-go/internal/infra/auth"
 	"github.com/henriquerocha2004/cyber-tech-go/internal/infra/database/mysql"
+	"github.com/henriquerocha2004/cyber-tech-go/internal/infra/sqs"
 	"github.com/jmoiron/sqlx"
 )
 
 type DependencyContainer struct {
-	connection             *sqlx.DB
-	
-	userHandler            *handlers.UserHandler
-	authHandler            *handlers.HandlerAuth
-	serviceHandler         *handlers.ServiceHandler
-	productCategoryHandler *handlers.ProductCategoryHandler
-	productHandler         *handlers.ProductHandler
-	supplierHandler        *handlers.SupplierHandler
-	stockHandler           *handlers.StockHandler
-	orderStatusHandler     *handlers.OrderServiceStatusHandler
-	serviceOrderHandler    *handlers.OrderServiceHandler
+	connection *sqlx.DB
 
-	login               auth.Login
-	userActions         actions.UserAction
-	stockActions        actions.StockActions
-	orderServiceActions actions.ServiceOrderActions
+	userHandler              *handlers.UserHandler
+	authHandler              *handlers.HandlerAuth
+	serviceHandler           *handlers.ServiceHandler
+	productCategoryHandler   *handlers.ProductCategoryHandler
+	productHandler           *handlers.ProductHandler
+	supplierHandler          *handlers.SupplierHandler
+	stockHandler             *handlers.StockHandler
+	orderStatusHandler       *handlers.OrderServiceStatusHandler
+	serviceOrderHandler      *handlers.OrderServiceHandler
+	serviceOrderQueueHandler *handlers.OrderServiceQueueHandler
+
+	login                    auth.Login
+	userActions              actions.UserAction
+	stockActions             actions.StockActions
+	orderServiceActions      actions.ServiceOrderActions
+	orderServiceEvent        entities.SendOrderServiceEvent
+	orderServiceListenEvents entities.ListenOrderServiceEvent
 
 	userQueryRepository           entities.UserQueryRepository
 	userCommandRepository         entities.UserCommandRepository
@@ -37,6 +41,27 @@ type DependencyContainer struct {
 	orderStatusRepository         entities.OrderServiceStatusRepository
 	orderServiceCommandRepository entities.OrderServiceCommandRepository
 	orderServiceQueryRepository   entities.OrderServiceQueryRepository
+}
+
+func (d *DependencyContainer) GetOrderServiceListenEvents() entities.ListenOrderServiceEvent {
+	d.orderServiceListenEvents = sqs.NewListenOrderServiceEventSqs(
+		d.GetOrderServiceQueueHandler(),
+	)
+	return d.orderServiceListenEvents
+}
+
+func (d *DependencyContainer) GetOrderServiceEvent() entities.SendOrderServiceEvent {
+	d.orderServiceEvent = sqs.NewSendOrderServiceEventSqs()
+	return d.orderServiceEvent
+}
+
+func (d *DependencyContainer) GetOrderServiceQueueHandler() *handlers.OrderServiceQueueHandler {
+	if d.serviceOrderQueueHandler == nil {
+		d.serviceOrderQueueHandler = handlers.NewOrderServiceQueueHandler(
+			d.GetStockActions(),
+		)
+	}
+	return d.serviceOrderQueueHandler
 }
 
 func (d *DependencyContainer) GetOrderServiceHandler() *handlers.OrderServiceHandler {
@@ -54,6 +79,7 @@ func (d *DependencyContainer) GetOrderServiceActions() actions.ServiceOrderActio
 		d.GetOrderServiceQueryRepository(),
 		d.GetOrderStatusRepository(),
 		d.GetProductRepository(),
+		d.GetOrderServiceEvent(),
 	)
 	return d.orderServiceActions
 }
