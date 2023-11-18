@@ -5,4 +5,5 @@ Api sistema de gerenciamento de assistencia técnica
 ### Libs Usadas
 
 Fiber para roteamento. <br>
+Mysql como mecanismo de persistencia. <br>
 
